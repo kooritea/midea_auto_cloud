@@ -54,6 +54,8 @@ class MideaEntity(CoordinatorEntity[MideaDataUpdateCoordinator], Entity):
         self._device = device
         self._config = config or {}
         self._rationale = rationale
+        self._name_cfg = None
+        self._name_attribute = None
         if (self._config.get("rationale")) is not None:
             self._rationale = self._config.get("rationale")
         if self._rationale is None:
@@ -82,10 +84,10 @@ class MideaEntity(CoordinatorEntity[MideaDataUpdateCoordinator], Entity):
             # Prefer translated name; allow explicit override via config.name
             self._attr_translation_key = self._config.get("translation_key") or self._entity_key
 
-            # 保存 name_attribute，用于动态获取名称
-            self._name_attribute = self._config.get("name_attribute")
             # 保存固定名称配置
             self._name_cfg = self._config.get("name")
+            # 保存 name_attribute，用于动态获取名称
+            self._name_attribute = self._config.get("name_attribute")
             self.entity_id = self._attr_unique_id
             # Register device updates for HA state refresh
             try:
@@ -129,6 +131,7 @@ class MideaEntity(CoordinatorEntity[MideaDataUpdateCoordinator], Entity):
         """Return the name of the entity.
 
         动态从设备属性获取名称，支持云端名称更新后自动同步。
+        优先使用自定义配置的名称，如果没有则回退到基类逻辑。
         """
         # 如果配置了固定的 name，直接使用
         if self._name_cfg is not None:
@@ -138,9 +141,8 @@ class MideaEntity(CoordinatorEntity[MideaDataUpdateCoordinator], Entity):
             dynamic_name = self._device._attributes.get(self._name_attribute)
             if dynamic_name:
                 return dynamic_name
-            return self._name_attribute.replace("_", " ").title()
-        # 默认行为
-        return None
+        # 如果没有自定义名称，调用基类的 name 属性
+        return super().name
 
     @property
     def device_attributes(self) -> dict:
