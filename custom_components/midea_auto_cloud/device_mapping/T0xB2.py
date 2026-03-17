@@ -8,7 +8,7 @@ DEVICE_MAPPING = {
         "rationale": ["off", "on"],
         "queries": [{}],
         "centralized": [
-            "work_status", "work_mode", "lock", "furnace_light", 
+            "work_status", "work_mode", "lock", "furnace_light",
             "dissipate_heat", "pre_heat", "door_open", "lack_water"
         ],
         "entities": {
@@ -330,17 +330,72 @@ DEVICE_MAPPING = {
             Platform.SELECT: {
                 "work_mode": {
                     "options": {
+                        "start": {"work_status": "work"},
                         "stop": {"work_status": "standby"},
                         "pause": {"work_status": "pause"},
-                        "steam_rice": {
-                            "work_status": "work", 
-                            "work_mode": "steam_rice",
-                            "temperature": 100
+                        "steam_fish": {
+                            "work_status": "work",
+                            "work_mode": "steam_fish",
+                            "temperature": 100,
+                            "work_hour": 0,
+                            "work_minute": 25,
+                            "work_second": 0
+                        },
+                        "steam_ribs": {
+                            "work_status": "work",
+                            "work_mode": "steam_ribs",
+                            "temperature": 100,
+                            "work_hour": 0,
+                            "work_minute": 25,
+                            "work_second": 0
                         },
                         "steam_vegetables": {
-                            "work_status": "work", 
+                            "work_status": "work",
                             "work_mode": "steam_vegetables",
-                            "temperature": 100
+                            "temperature": 100,
+                            "work_hour": 0,
+                            "work_minute": 10,
+                            "work_second": 0
+                        },
+                        "steam_rice": {
+                            "work_status": "work",
+                            "work_mode": "steam_rice",
+                            "temperature": 100,
+                            "work_hour": 0,
+                            "work_minute": 35,
+                            "work_second": 0
+                        },
+                        "keep_warm": {
+                            "work_status": "work",
+                            "work_mode": "steam_clean",
+                            "temperature": 50,
+                            "work_hour": 0,
+                            "work_minute": 30,
+                            "work_second": 0
+                        },
+                        "unfreeze": {
+                            "work_status": "work",
+                            "work_mode": "unfreeze",
+                            "temperature": 60,
+                            "work_hour": 0,
+                            "work_minute": 30,
+                            "work_second": 0
+                        },
+                        "pure_steam": {
+                            "work_status": "work",
+                            "work_mode": "pure_steam",
+                            "temperature": 100,
+                            "work_hour": 0,
+                            "work_minute": 30,
+                            "work_second": 0
+                        },
+                        "steam_clean": {
+                            "work_status": "work",
+                            "work_mode": "steam_clean",
+                            "temperature": 100,
+                            "work_hour": 0,
+                            "work_minute": 30,
+                            "work_second": 0
                         },
                     }
                 }
@@ -355,7 +410,7 @@ DEVICE_MAPPING = {
                 },
                 "work_hour": {
                     "min": 0,
-                    "max": 23,
+                    "max": 2,
                     "step": 1,
                     "unit_of_measurement": UnitOfTime.HOURS,
                     "device_class": SensorDeviceClass.DURATION,
@@ -376,6 +431,9 @@ DEVICE_MAPPING = {
                 }
             },
             Platform.SENSOR: {
+                "water_status": {
+                    "device_class": SensorDeviceClass.ENUM,
+                },
                 "work_status": {
                     "device_class": SensorDeviceClass.ENUM,
                 },
