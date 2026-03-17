@@ -18,6 +18,7 @@ from .const import (
     CONF_SELECTED_HOMES,
     STORAGE_PATH,
     STORAGE_PLUGIN_PATH,
+    STORAGE_TOKEN_PATH,
     CONF_SN,
     CONF_MODEL_NUMBER,
     CONF_MANUFACTURER_CODE,
@@ -50,11 +51,13 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if self._session is None:
             self._session = async_create_clientsession(self.hass)
         if user_input is not None:
+            token_storage = self.hass.config.path(STORAGE_TOKEN_PATH)
             cloud = get_midea_cloud(
                 session=self._session,
                 cloud_name=CONF_SERVERS[user_input[CONF_SERVER]],
                 account=user_input[CONF_ACCOUNT],
-                password=user_input[CONF_PASSWORD]
+                password=user_input[CONF_PASSWORD],
+                token_storage=token_storage
             )
             try:
                 if await cloud.login():
@@ -348,11 +351,13 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         
         if user_input is not None:
             # 验证新密码
+            token_storage = self.hass.config.path(STORAGE_TOKEN_PATH)
             cloud = get_midea_cloud(
                 session=async_create_clientsession(self.hass),
                 cloud_name=CONF_SERVERS[user_input[CONF_SERVER]],
                 account=user_input[CONF_ACCOUNT],
-                password=user_input[CONF_PASSWORD]
+                password=user_input[CONF_PASSWORD],
+                token_storage=token_storage
             )
             try:
                 if await cloud.login():

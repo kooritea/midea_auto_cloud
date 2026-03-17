@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import time
 import datetime
@@ -50,7 +51,8 @@ class MideaCloud:
             account: str,
             password: str,
             api_url: str,
-            proxy: str | None = None
+            proxy: str | None = None,
+            token_storage: str | None = None
     ):
         self._device_id = CloudSecurity.get_deviceid(account)
         self._session = session
@@ -62,6 +64,13 @@ class MideaCloud:
         self._proxy = proxy
         self._access_token = None
         self._login_id = None
+        self._token_storage = token_storage
+        self._token_file = None
+        if token_storage:
+            os.makedirs(token_storage, exist_ok=True)
+            # 使用账号和设备ID作为token文件名，确保不同账号的token不冲突
+            token_name = base64.urlsafe_b64encode(account.encode()).decode().rstrip("=")
+            self._token_file = os.path.join(token_storage, f"{token_name}.json")
 
     def _make_general_data(self):
         return {}
@@ -155,6 +164,61 @@ class MideaCloud:
 
         return None
 
+    async def _load_token(self) -> dict | None:
+        """从文件加载 token（异步）"""
+        if not self._token_file:
+            return None
+        # 使用 asyncio.to_thread 检查文件是否存在，避免阻塞事件循环
+        try:
+            exists = await asyncio.to_thread(os.path.exists, self._token_file)
+            if not exists:
+                return None
+        except Exception:
+            return None
+        try:
+            async with aiofiles.open(self._token_file, "r", encoding="utf-8") as f:
+                content = await f.read()
+                return json.loads(content)
+        except Exception as e:
+            _LOGGER.debug(f"Failed to load token: {e}")
+            return None
+
+    async def _save_token(self, token_data: dict):
+        """保存 token 到文件（异步）"""
+        if not self._token_file:
+            return
+        try:
+            async with aiofiles.open(self._token_file, "w", encoding="utf-8") as f:
+                await f.write(json.dumps(token_data))
+        except Exception as e:
+            _LOGGER.debug(f"Failed to save token: {e}")
+
+    async def _clear_token(self):
+        """清除保存的 token（异步）"""
+        if not self._token_file:
+            return
+        try:
+            exists = await asyncio.to_thread(os.path.exists, self._token_file)
+            if exists:
+                await asyncio.to_thread(os.remove, self._token_file)
+        except Exception:
+            pass
+
+    async def _test_token_valid(self) -> bool:
+        """测试当前 token 是否有效"""
+        if not self._access_token:
+            return False
+        # 尝试获取用户列表或家庭列表来验证 token
+        try:
+            data = self._make_general_data()
+            response = await self._api_request(
+                endpoint="/v1/homegroup/list/get",
+                data=data
+            )
+            return response is not None
+        except Exception:
+            return False
+
     async def _get_login_id(self) -> str | None:
         data = self._make_general_data()
         data.update({
@@ -221,6 +285,7 @@ class MeijuCloud(MideaCloud):
             account: str,
             password: str,
             proxy: str | None = None,
+            token_storage: str | None = None,
     ):
         super().__init__(
             session=session,
@@ -233,11 +298,40 @@ class MeijuCloud(MideaCloud):
             account=account,
             password=password,
             api_url=clouds[cloud_name]["api_url"],
-            proxy=proxy
+            proxy=proxy,
+            token_storage=token_storage
         )
         self._homegroup_id = None
 
     async def login(self) -> bool:
+        # 首先尝试加载并使用已有的 token
+        token_data = await self._load_token()
+        if token_data and token_data.get("access_token"):
+            self._access_token = token_data["access_token"]
+            # 尝试解密 key（如果存在）
+            if key := token_data.get("key"):
+                try:
+                    self._security.set_aes_keys(
+                        self._security.aes_decrypt_with_fixed_key(key),
+                        None
+                    )
+                except Exception as e:
+                    _LOGGER.debug(f"Failed to restore AES key: {e}")
+            # 验证 token 是否有效
+            if await self._test_token_valid():
+                _LOGGER.info(f"Using saved access token for {self._account}")
+                # 恢复昵称
+                if nickname := token_data.get("nickname"):
+                    self._nickname = nickname
+                else:
+                    self._nickname = self._account
+                return True
+            # Token 无效，清除
+            _LOGGER.debug("Saved token is invalid, will re-login")
+            self._access_token = None
+            await self._clear_token()
+
+        # 没有有效的保存 token，执行正常登录流程
         if login_id := await self._get_login_id():
             self._login_id = login_id
             stamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
@@ -275,6 +369,12 @@ class MeijuCloud(MideaCloud):
                     self._nickname = response["userInfo"]["nickName"]
                 else:
                     self._nickname = self._account
+                # 保存 token 供下次使用
+                await self._save_token({
+                    "access_token": self._access_token,
+                    "key": response["key"],
+                    "nickname": getattr(self, "_nickname", self._account),
+                })
                 return True
         return False
 
@@ -634,6 +734,7 @@ class MSmartHomeCloud(MideaCloud):
             account: str,
             password: str,
             proxy: str | None = None,
+            token_storage: str | None = None,
     ):
         super().__init__(
             session=session,
@@ -646,7 +747,8 @@ class MSmartHomeCloud(MideaCloud):
             account=account,
             password=password,
             api_url=clouds[cloud_name]["api_url"],
-            proxy=proxy
+            proxy=proxy,
+            token_storage=token_storage
         )
         self._auth_base = base64.b64encode(
             f"{self._app_key}:{clouds['MSmartHome']['iot_key']}".encode("ascii")
@@ -694,6 +796,32 @@ class MSmartHomeCloud(MideaCloud):
                 self._api_url = api_url
 
     async def login(self) -> bool:
+        # 首先尝试加载并使用已有的 token
+        token_data = await self._load_token()
+        if token_data and token_data.get("access_token"):
+            self._access_token = token_data["access_token"]
+            self._uid = token_data.get("uid", "")
+            # 尝试恢复 AES key
+            if access_token := token_data.get("aes_access_token"):
+                try:
+                    self._security.set_aes_keys(access_token, token_data.get("aes_random_data"))
+                except Exception as e:
+                    _LOGGER.debug(f"Failed to restore AES key: {e}")
+            # 验证 token 是否有效
+            if await self._test_token_valid():
+                _LOGGER.info(f"Using saved access token for {self._account}")
+                if nickname := token_data.get("nickname"):
+                    self._nickname = nickname
+                else:
+                    self._nickname = self._account
+                return True
+            # Token 无效，清除
+            _LOGGER.debug("Saved token is invalid, will re-login")
+            self._access_token = None
+            self._uid = ""
+            await self._clear_token()
+
+        # 没有有效的保存 token，执行正常登录流程
         await self._re_route()
         if login_id := await self._get_login_id():
             self._login_id = login_id
@@ -727,6 +855,14 @@ class MSmartHomeCloud(MideaCloud):
                     self._nickname = response["userInfo"]["nickName"]
                 else:
                     self._nickname = self._account
+                # 保存 token 供下次使用
+                await self._save_token({
+                    "access_token": self._access_token,
+                    "uid": self._uid,
+                    "aes_access_token": response["accessToken"],
+                    "aes_random_data": response.get("randomData"),
+                    "nickname": getattr(self, "_nickname", self._account),
+                })
                 return True
         return False
 
@@ -910,7 +1046,14 @@ class MSmartHomeCloud(MideaCloud):
         )
         return response is not None
 
-def get_midea_cloud(cloud_name: str, session: ClientSession, account: str, password: str, proxy: str | None = None) -> MideaCloud | None:
+def get_midea_cloud(
+    cloud_name: str,
+    session: ClientSession,
+    account: str,
+    password: str,
+    proxy: str | None = None,
+    token_storage: str | None = None
+) -> MideaCloud | None:
     cloud = None
     if cloud_name in clouds.keys():
         cloud = globals()[clouds[cloud_name]["class_name"]](
@@ -918,6 +1061,7 @@ def get_midea_cloud(cloud_name: str, session: ClientSession, account: str, passw
             session=session,
             account=account,
             password=password,
-            proxy=proxy
+            proxy=proxy,
+            token_storage=token_storage
         )
     return cloud
