@@ -85,7 +85,7 @@ def remove_device_config(hass: HomeAssistant, sn8):
         pass
 
 
-async def load_device_config(hass: HomeAssistant, device_type, sn8, subtype=None):
+async def load_device_config(hass: HomeAssistant, device_type, sn8, subtype=None, device_info: dict = None):
     def _ensure_dir_and_load(path_dir: str, path_file: str):
         os.makedirs(path_dir, exist_ok=True)
         return load_json(path_file, default={})
@@ -114,9 +114,19 @@ async def load_device_config(hass: HomeAssistant, device_type, sn8, subtype=None
             if "default" in mapping_module.DEVICE_MAPPING:
                 json_data = mapping_module.DEVICE_MAPPING["default"]
             else:
-                MideaLogger.warning(f"No mapping found for sn8 {sn8} subtype {subtype} in type {'T0x%02X' % device_type}")
+                # 输出详细的设备信息以便调试
+                MideaLogger.warning(
+                    f"No mapping found for device type {'T0x%02X' % device_type}, "
+                    f"sn8: {sn8}, subtype: {subtype}. "
+                    f"Device info: {device_info if device_info else 'N/A'}"
+                )
     except ModuleNotFoundError:
-        MideaLogger.warning(f"Can't load mapping file for type {'T0x%02X' % device_type}")
+        # 输出详细的设备信息以便调试
+        MideaLogger.warning(
+            f"Can't load mapping file for type {'T0x%02X' % device_type}. "
+            f"sn8: {sn8}, subtype: {subtype}. "
+            f"Device info: {device_info if device_info else 'N/A'}"
+        )
 
     save_data = {sn8: json_data}
     # offload save_json as well
@@ -378,6 +388,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
                                     info.get(CONF_TYPE) or info.get("type"),
                                     info.get(CONF_SN8) or info.get("sn8"),
                                     device.subtype,
+                                    info,
                                 ) or {}
                             except Exception:
                                 mapping = {}
