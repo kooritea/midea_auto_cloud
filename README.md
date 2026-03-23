@@ -25,6 +25,7 @@ Get devices from MSmartHome/Midea Meiju homes through the network and control th
 - T0x24 Electric Oven
 - T0x26 Bath Heater
 - T0x3D Water Heater
+- T0x44 Smart Thermostat
 - T0x9B Steam oven
 - T0x9C Integrated Gas Stove
 - T0xA1 Dehumidifier
@@ -85,6 +86,12 @@ Mapping files are located under `device_mapping`, with one mapping file for each
 - water_heater
 
 The example configuration `22012227` demonstrates how to map device attributes to various Home Assistant entities above.
+
+## Donation
+
+If you find the project interesting or helpful, you are welcome to make a donation to support it. Donations will be used for the daily maintenance of the plugin, making it easier to provide better services for everyone!
+
+[!["Buy Me A Coffee"](https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png)](https://www.buymeacoffee.com/sususweet)
 
 ## Acknowledgments
 

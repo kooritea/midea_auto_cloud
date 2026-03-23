@@ -4,9 +4,8 @@ from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN
 from .midea_entity import MideaEntity
-from . import load_device_config
+from .platform_setup import async_setup_platform_entities
 
 
 async def async_setup_entry(
@@ -14,27 +13,15 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    account_bucket = hass.data.get(DOMAIN, {}).get("accounts", {}).get(config_entry.entry_id)
-    if not account_bucket:
-        async_add_entities([])
-        return
-    device_list = account_bucket.get("device_list", {})
-    coordinator_map = account_bucket.get("coordinator_map", {})
-
-    devs = []
-    for device_id, info in device_list.items():
-        device_type = info.get("type")
-        sn8 = info.get("sn8")
-        coordinator = coordinator_map.get(device_id)
-        device = coordinator.device if coordinator else None
-        subtype = device.subtype if device else None
-        config = await load_device_config(hass, device_type, sn8, subtype) or {}
-        entities_cfg = (config.get("entities") or {}).get(Platform.FAN, {})
-        manufacturer = config.get("manufacturer")
-        rationale = config.get("rationale")
-        for entity_key, ecfg in entities_cfg.items():
-            devs.append(MideaFanEntity(coordinator, device, manufacturer, rationale, entity_key, ecfg))
-    async_add_entities(devs)
+    await async_setup_platform_entities(
+        hass,
+        config_entry,
+        async_add_entities,
+        Platform.FAN,
+        lambda coordinator, device, manufacturer, rationale, entity_key, ecfg: MideaFanEntity(
+            coordinator, device, manufacturer, rationale, entity_key, ecfg
+        ),
+    )
 
 
 class MideaFanEntity(MideaEntity, FanEntity):
@@ -154,7 +141,7 @@ class MideaFanEntity(MideaEntity, FanEntity):
         new_status = {}
         if preset_mode is not None and self._key_preset_modes is not None:
             mode_config = self._key_preset_modes.get(preset_mode, {})
-            new_status.update({"mode": mode_config.get("mode")})
+            new_status.update = mode_config
         
             # 切换到该模式的档位配置
             if "speeds" in mode_config:
@@ -242,7 +229,7 @@ class MideaFanEntity(MideaEntity, FanEntity):
             self._current_preset_mode = preset_mode
         
             # 设置模式
-            new_status = {"mode": mode_config.get("mode")}
+            new_status = mode_config
         
             # 如果只有一个档位，自动设置
             if "speeds" in mode_config and len(mode_config["speeds"]) == 1:

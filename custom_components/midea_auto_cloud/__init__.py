@@ -65,9 +65,11 @@ PLATFORMS: list[Platform] = [
     Platform.VACUUM
 ]
 
+
 async def import_module_async(module_name):
     # 在线程池中执行导入操作
     return await asyncio.to_thread(import_module, module_name, __package__)
+
 
 def get_sn8_used(hass: HomeAssistant, sn8):
     entries = hass.config_entries.async_entries(DOMAIN)
@@ -87,11 +89,11 @@ def remove_device_config(hass: HomeAssistant, sn8):
 
 
 def get_device_mapping(
-    device_mappings: dict,
-    device_type: int,
-    sn8: str = "",
-    subtype: int | None = None,
-    category: str | None = None,
+        device_mappings: dict,
+        device_type: int,
+        sn8: str = "",
+        subtype: int | None = None,
+        category: str | None = None,
 ) -> dict:
     """按 subtype -> sn8 -> default_category -> default 的优先级选择映射。"""
     # 没有任何映射直接返回空
@@ -105,10 +107,10 @@ def get_device_mapping(
         subtype_str = str(subtype)
         for key, config in device_mappings.items():
             if (
-                isinstance(key, tuple)
-                and len(key) == 2
-                and key[0] == "subtype"
-                and str(key[1]) == subtype_str
+                    isinstance(key, tuple)
+                    and len(key) == 2
+                    and key[0] == "subtype"
+                    and str(key[1]) == subtype_str
             ):
                 result = config
                 break
@@ -118,9 +120,9 @@ def get_device_mapping(
         for key, config in device_mappings.items():
             # 直接等于 / tuple 包含 / 正则匹配
             if (
-                key == sn8
-                or (isinstance(key, tuple) and sn8 in key)
-                or (isinstance(key, str) and re.match(key, sn8))
+                    key == sn8
+                    or (isinstance(key, tuple) and sn8 in key)
+                    or (isinstance(key, str) and re.match(key, sn8))
             ):
                 result = config
                 break
@@ -147,7 +149,7 @@ def get_device_mapping(
     return result
 
 
-async def load_device_config(hass: HomeAssistant, device_type, sn8, subtype=None, category: str | None = None):
+async def load_device_config(hass: HomeAssistant, device_type, sn8, subtype=None, category=None):
     def _ensure_dir_and_load(path_dir: str, path_file: str):
         os.makedirs(path_dir, exist_ok=True)
         return load_json(path_file, default={})
@@ -181,6 +183,7 @@ async def load_device_config(hass: HomeAssistant, device_type, sn8, subtype=None
     await hass.async_add_executor_job(save_json, config_file, save_data)
     return json_data
 
+
 async def update_listener(hass: HomeAssistant, config_entry: ConfigEntry):
     device_id = config_entry.data.get(CONF_DEVICE_ID)
     if device_id is not None:
@@ -196,6 +199,7 @@ async def update_listener(hass: HomeAssistant, config_entry: ConfigEntry):
                 device.set_ip_address(ip_address)
             if refresh_interval is not None:
                 device.set_refresh_interval(refresh_interval)
+
 
 async def async_setup(hass: HomeAssistant, config: ConfigType):
     hass.data.setdefault(DOMAIN, {})
@@ -240,6 +244,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType):
 
     return True
 
+
 async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     device_type = config_entry.data.get(CONF_TYPE)
     MideaLogger.debug(f"async_setup_entry type={device_type} data={config_entry.data}")
@@ -247,6 +252,12 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         account = config_entry.data.get(CONF_ACCOUNT)
         password = config_entry.data.get(CONF_PASSWORD)
         server = config_entry.data.get(CONF_SERVER)
+
+        # 统一 server 类型，避免同一 server 因类型差异产生不同 session_key
+        try:
+            server = int(server)
+        except Exception:
+            pass
 
         # 初始化数据存储结构
         hass.data.setdefault(DOMAIN, {})
@@ -338,11 +349,11 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             homes = await cloud.list_home()
             if homes:
                 bucket = {"device_list": {}, "coordinator_map": {}}
-                
+
                 # 获取用户选择的家庭ID列表
                 selected_homes = config_entry.data.get(CONF_SELECTED_HOMES, [])
-                MideaLogger.debug(f"Selected homes from config: {selected_homes}")
-                MideaLogger.debug(f"Available homes keys: {list(homes.keys())}")
+                MideaLogger.debug(
+                    f"Selected homes from config: {selected_homes}, Available homes keys: {list(homes.keys())}")
                 if not selected_homes:
                     # 如果没有选择，默认使用所有家庭
                     home_ids = list(homes.keys())
@@ -350,7 +361,8 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
                     # 只处理用户选择的家庭，确保类型匹配
                     home_ids = []
                     for selected_home in selected_homes:
-                        for key in [selected_home, str(selected_home), int(selected_home) if str(selected_home).isdigit() else None]:
+                        for key in [selected_home, str(selected_home),
+                                    int(selected_home) if str(selected_home).isdigit() else None]:
                             if key is not None and key in homes and key not in home_ids:
                                 home_ids.append(key)
                                 break
@@ -361,7 +373,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
                     home_id = home_ids[0]
                     home_info = homes.get(home_id) or homes.get(str(home_id)) or homes.get(int(home_id))
                     if home_info:
-                        new_home_name = home_info.get("name", f"家庭 {home_id}") if isinstance(home_info, dict) else str(home_info) if home_info else f"家庭 {home_id}"
+                        new_home_name = home_info.get("name", f"家庭 {home_id}") if isinstance(home_info,
+                                                                                               dict) else str(
+                            home_info) if home_info else f"家庭 {home_id}"
                         current_home_name = config_entry.data.get("home_name", "")
                         if new_home_name != current_home_name:
                             new_title = f"{cloud.nickname} | {new_home_name}"
@@ -394,6 +408,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
                                 sn=info.get(CONF_SN),
                                 model_number=info.get(CONF_MODEL_NUMBER),
                                 manufacturer_code=info.get(CONF_MANUFACTURER_CODE),
+                                smart_product_id=info.get(CONF_SMART_PRODUCT_ID),
                             )
                         except Exception as e:
                             MideaLogger.warning(f"Failed to download lua for {info.get(CONF_NAME)}: {e}")
@@ -441,7 +456,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
                                     info.get(CONF_TYPE) or info.get("type"),
                                     info.get(CONF_SN8) or info.get("sn8"),
                                     device.subtype,
-                                    category=info.get(CONF_CATEGORY) or info.get("category"),
+                                    device.category,
                                 ) or {}
                             except Exception:
                                 mapping = {}
@@ -560,6 +575,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             MideaLogger.error(f"Fetch appliances failed: {e}")
         await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
         return True
+
 
 async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     device_id = config_entry.data.get(CONF_DEVICE_ID)

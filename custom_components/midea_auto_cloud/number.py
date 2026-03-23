@@ -4,10 +4,9 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN
 from .core.logger import MideaLogger
 from .midea_entity import MideaEntity
-from . import load_device_config
+from .platform_setup import async_setup_platform_entities
 
 
 async def async_setup_entry(
@@ -16,29 +15,15 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up number entities for Midea devices."""
-    account_bucket = hass.data.get(DOMAIN, {}).get("accounts", {}).get(config_entry.entry_id)
-    if not account_bucket:
-        async_add_entities([])
-        return
-    device_list = account_bucket.get("device_list", {})
-    coordinator_map = account_bucket.get("coordinator_map", {})
-
-    devs = []
-    for device_id, info in device_list.items():
-        device_type = info.get("type")
-        sn8 = info.get("sn8")
-        coordinator = coordinator_map.get(device_id)
-        device = coordinator.device if coordinator else None
-        subtype = device.subtype if device else None
-        config = await load_device_config(hass, device_type, sn8, subtype) or {}
-        entities_cfg = (config.get("entities") or {}).get(Platform.NUMBER, {})
-        manufacturer = config.get("manufacturer")
-        rationale = config.get("rationale")
-        for entity_key, ecfg in entities_cfg.items():
-            devs.append(MideaNumberEntity(
-                coordinator, device, manufacturer, rationale, entity_key, ecfg
-            ))
-    async_add_entities(devs)
+    await async_setup_platform_entities(
+        hass,
+        config_entry,
+        async_add_entities,
+        Platform.NUMBER,
+        lambda coordinator, device, manufacturer, rationale, entity_key, ecfg: MideaNumberEntity(
+            coordinator, device, manufacturer, rationale, entity_key, ecfg
+        ),
+    )
 
 
 class MideaNumberEntity(MideaEntity, NumberEntity):
@@ -89,12 +74,18 @@ class MideaNumberEntity(MideaEntity, NumberEntity):
     @property
     def native_min_value(self) -> float:
         """Return the minimum value."""
-        return float(self._min_value)
+        if isinstance(self._min_value, str):
+            return float(self.device_attributes.get(self._min_value, 30))
+        else:
+            return float(self._min_value)
 
     @property
     def native_max_value(self) -> float:
         """Return the maximum value."""
-        return float(self._max_value)
+        if isinstance(self._max_value, str):
+            return float(self.device_attributes.get(self._max_value, 16))
+        else:
+            return float(self._max_value)
 
     @property
     def native_step(self) -> float:

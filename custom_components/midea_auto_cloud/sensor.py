@@ -1,12 +1,11 @@
 from homeassistant.components.sensor import SensorEntity
-from homeassistant.const import Platform
+from homeassistant.const import Platform, UnitOfTemperature
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN
 from .midea_entity import MideaEntity
-from . import load_device_config
+from .platform_setup import async_setup_platform_entities
 
 
 async def async_setup_entry(
@@ -15,29 +14,15 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up sensor entities for Midea devices."""
-    account_bucket = hass.data.get(DOMAIN, {}).get("accounts", {}).get(config_entry.entry_id)
-    if not account_bucket:
-        async_add_entities([])
-        return
-    device_list = account_bucket.get("device_list", {})
-    coordinator_map = account_bucket.get("coordinator_map", {})
-
-    devs = []
-    for device_id, info in device_list.items():
-        device_type = info.get("type")
-        sn8 = info.get("sn8")
-        coordinator = coordinator_map.get(device_id)
-        device = coordinator.device if coordinator else None
-        subtype = device.subtype if device else None
-        config = await load_device_config(hass, device_type, sn8, subtype) or {}
-        entities_cfg = (config.get("entities") or {}).get(Platform.SENSOR, {})
-        manufacturer = config.get("manufacturer")
-        rationale = config.get("rationale")
-        for entity_key, ecfg in entities_cfg.items():
-            devs.append(MideaSensorEntity(
-                coordinator, device, manufacturer, rationale, entity_key, ecfg
-            ))
-    async_add_entities(devs)
+    await async_setup_platform_entities(
+        hass,
+        config_entry,
+        async_add_entities,
+        Platform.SENSOR,
+        lambda coordinator, device, manufacturer, rationale, entity_key, ecfg: MideaSensorEntity(
+            coordinator, device, manufacturer, rationale, entity_key, ecfg
+        ),
+    )
 
 
 class MideaSensorEntity(MideaEntity, SensorEntity):
@@ -58,6 +43,24 @@ class MideaSensorEntity(MideaEntity, SensorEntity):
             rationale=rationale,
             config=config,
         )
+        self._key_dynamic_unit = self._config.get("dynamic_unit")
+
+    @property
+    def native_unit_of_measurement(self):
+        """Return the native unit (static or device attribute driven).
+
+        If mapping provides dynamic_unit key (e.g. "temperature_unit"), it is read from device attributes:
+        - 1 => Fahrenheit
+        - 0/others => Celsius
+        """
+        if isinstance(self._key_dynamic_unit, str):
+            raw = self._get_nested_value(self._key_dynamic_unit)
+            try:
+                value = int(raw)
+            except (TypeError, ValueError):
+                value = 0
+            return UnitOfTemperature.FAHRENHEIT if value == 1 else UnitOfTemperature.CELSIUS
+        return super().native_unit_of_measurement
 
     @property
     def native_value(self):

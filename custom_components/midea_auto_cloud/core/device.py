@@ -76,7 +76,7 @@ class MiedaDevice(threading.Thread):
             "subtype": subtype,
             "category": category,
         }
-        self._refresh_interval = 30
+        self._refresh_interval = 20
         self._heartbeat_interval = 10
         self._device_connected(connected)
         self._queries = [{}]
@@ -169,6 +169,10 @@ class MiedaDevice(threading.Thread):
     @property
     def subtype(self):
         return self._subtype
+
+    @property
+    def category(self):
+        return self._category
 
     @property
     def attributes(self):

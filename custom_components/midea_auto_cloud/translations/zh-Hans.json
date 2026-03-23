@@ -196,7 +196,7 @@
         }
       },
       "air_status": {
-        "name": "空气运行"
+        "name": "烘干存储运行状态"
       },
       "bar_door_state": {
         "name": "吧台门状态"
@@ -622,6 +622,15 @@
           "on": "开启"
         }
       },
+      "dry_time_interval": {
+        "name": "除湿时间间隔",
+        "state": {
+          "15min": "15分钟",
+          "30min": "30分钟",
+          "45min": "45分钟",
+          "60min": "60分钟"
+        }
+      },
       "no_wind_sense": {
         "name": "无风感"
       },
@@ -653,7 +662,59 @@
       "keep_warm_time": {
         "name": "保温时间"
       },
-		  "fresh_air_mode_select": {
+      "cur_quantify": {
+        "name": "定量模式",
+        "state": {
+          "off_quantify": "关闭定量",
+          "small_amount": "少量",
+          "normal_amount": "常量",
+          "large_amount": "大量"
+        }
+      },
+      "quantify_1": {
+        "name": "定量1",
+        "state": {
+          "50": "50",
+          "100": "100",
+          "150": "150",
+          "200": "200",
+          "250": "250",
+          "300": "300"
+        }
+      },
+      "quantify_2": {
+        "name": "定量2",
+        "state": {
+          "150": "150",
+          "200": "200",
+          "250": "250",
+          "300": "300",
+          "400": "400",
+          "500": "500"
+        }
+      },
+      "quantify_3": {
+        "name": "定量3",
+        "state": {
+          "300": "300",
+          "400": "400",
+          "500": "500",
+          "600": "600",
+          "700": "700"
+        }
+      },
+      "screenout_time": {
+        "name": "息屏时间",
+        "state": {
+          "10": "10秒",
+          "30": "30秒",
+          "60": "60秒",
+          "120": "120秒",
+          "180": "180秒",
+          "300": "300秒"
+        }
+      },
+		"fresh_air_mode_select": {
         "name": "模式",
         "state": {
           "normal": "普通",
@@ -722,10 +783,10 @@
         }
       },
       "ud_swing_angle": {
-        "name": "上下摆风角度"
+        "name": "普通模式上下摆风角度"
       },
       "lr_swing_angle": {
-        "name": "左右摆风角度"
+        "name": "普通模式左右摆风角度"
       },
       "ptc_default_rule": {
         "name": "电辅热模式",
@@ -1278,6 +1339,9 @@
           "custom": "自定义"
         }
       },
+      "speed": {
+        "name": "速度"
+      },
       "wash_mode": {
         "name": "洗涤模式",
         "state": {
@@ -1377,6 +1441,24 @@
       },
       "swing_direction": {
         "name": "摆风方向"
+      },
+      "lr_shake_switch": {
+        "name": "左右摇头",
+        "state": {
+          "off": "关闭",
+          "default": "默认",
+          "normal": "正常",
+          "diy": "自定义"
+        }
+      },
+      "ud_shake_switch": {
+        "name": "上下摇头",
+        "state": {
+          "off": "关闭",
+          "default": "默认",
+          "normal": "正常",
+          "diy": "自定义"
+        }
       },
       "scene": {
         "name": "场景"
@@ -1578,6 +1660,15 @@
       }
     },
     "sensor": {
+      "lr_current_angle": {
+        "name": "左右当前摆风角度"
+      },
+      "ud_current_angle": {
+        "name": "上下当前摆风角度"
+      },
+      "dry_remain_time": {
+        "name": "除湿剩余时间"
+      },
       "ice_gall_status": {
         "name": "制冷功能状态",
         "state": {
@@ -1591,8 +1682,8 @@
       "wind_pressure": {
         "name": "风压"
       },
-	    "new_wind_humidity": {
-        "name": "湿度"
+      "new_wind_humidity": {
+        "name": "新风湿度"
       },
       "new_wind_outdoor_temperature": {
         "name": "室外温度"
@@ -1931,6 +2022,42 @@
       },
       "error_code": {
         "name": "错误代码"
+      },
+      "current_temp": {
+        "name": "当前温度"
+      },
+      "current_time": {
+        "name": "当前时长"
+      },
+      "step_status": {
+        "name": "步骤状态"
+      },
+      "cup_status": {
+        "name": "杯盖状态"
+      },
+      "lid_status": {
+        "name": "上盖状态"
+      },
+      "response_type": {
+        "name": "响应类型"
+      },
+      "power_on_flag": {
+        "name": "电源标志"
+      },
+      "appoint_time": {
+        "name": "预约时长"
+      },
+      "set_work_time": {
+        "name": "设置工作时长"
+      },
+      "set_keep_warm_time": {
+        "name": "设置保温时长"
+      },
+      "set_work_temp": {
+        "name": "设置工作温度"
+      },
+      "set_keep_warm_temp": {
+        "name": "设置保温温度"
       },
       "error_desc": {
         "name": "错误描述"
@@ -2670,6 +2797,12 @@
       "current_temperature": {
         "name": "当前温度"
       },
+      "germicidal_left_time": {
+        "name": "杀菌剩余时间"
+      },
+      "germicidal_countdown": {
+        "name": "杀菌倒计时"
+      },
       "bath_temperature": {
         "name": "浴室温度"
       },
@@ -2746,6 +2879,12 @@
       }
     },
     "number": {
+      "auto_temperature_lower_limit": {
+        "name": "自动模式温度下限"
+      },
+      "auto_temperature_upper_limit": {
+        "name": "自动模式温度上限"
+      },
       "air_set_hour": {
         "name": "烘干存储设置时间"
       },
@@ -2892,6 +3031,39 @@
       },
       "wash_strength": {
         "name": "水流强度"
+      },
+      "custom_temperature_1": {
+        "name": "自定义温度1"
+      },
+      "lr_target_angle": {
+        "name": "左右摆风角度"
+      },
+      "ud_target_angle": {
+        "name": "上下摆风角度"
+      },
+      "lr_diy_angle_down": {
+        "name": "左右DIY起始角度(左侧)"
+      },
+      "lr_diy_angle_up": {
+        "name": "左右DIY结束角度(右侧)"
+      },
+      "ud_diy_angle_down": {
+        "name": "上下DIY起始角度(下侧)"
+      },
+      "ud_diy_angle_up": {
+        "name": "上下DIY结束角度(上侧)"
+      },
+      "area1_time": {
+        "name": "双区区域1持续时间"
+      },
+      "area2_time": {
+        "name": "双区区域2持续时间"
+      },
+      "area1_gear": {
+        "name": "双区区域1档位"
+      },
+      "area2_gear": {
+        "name": "双区区域2档位"
       }
     },
     "fan": {
@@ -2905,7 +3077,8 @@
               "sleep": "睡眠风",
               "self_selection": "自选风",
               "sleeping_wind": "睡眠风",
-              "purified_wind": "净化风"
+              "purified_wind": "净化风",
+              "double_area": "双区送风"
             }
           }
         }
@@ -2929,9 +3102,6 @@
       },
       "buzzer_off_status": {
         "name": "静音控制"
-      },
-      "ptc": {
-        "name": "电辅热"
       },
       "new_wind_machine": {
         "name": "新风开关"
@@ -3737,11 +3907,35 @@
       "drainage": {
         "name": "排水"
       },
+      "cool": {
+        "name": "制冷"
+      },
+      "human_sensing_switch": {
+        "name": "人体感应"
+      },
+      "set_germicidal_countdown": {
+        "name": "设置杀菌倒计时"
+      },
       "wash_enable": {
         "name": "洗涤启用"
       },
       "eco": {
         "name": "节能模式"
+      },
+      "ptc": {
+        "name": "电辅热"
+      },
+      "digital_display": {
+        "name": "数显"
+      },
+      "voice_control": {
+        "name": "语音控制"
+      },
+      "voice_control_speaking": {
+        "name": "语音播报"
+      },
+      "mute_voice": {
+        "name": "静音"
       },
       "strong": {
         "name": "强劲模式"

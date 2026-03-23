@@ -588,6 +588,15 @@
       "aidry": {
         "name": "Aidry"
       },
+      "dry_time_interval": {
+        "name": "Dry Time Interval",
+        "state": {
+          "15min": "15 min",
+          "30min": "30 min",
+          "45min": "45 min",
+          "60min": "60 min"
+        }
+      },
       "no_wind_sense": {
         "name": "No Wind Sense"
       },
@@ -619,19 +628,71 @@
       "keep_warm_time": {
         "name": "Keep Warm Time"
       },
-      "fresh_air_mode_select": {
-        "name": "Mode",
+      "cur_quantify": {
+        "name": "Quantify Mode",
         "state": {
-          "normal": "Normal",
-          "smart": "Smart",
-          "manual_recirculation": "Manual Recirculation",
-          "auto_recirculation": "Auto Recirculation",
-          "supply_air_gentle": "Gentle Supply Air",
-          "supply_air_fast": "Fast Supply Air",
-          "exhaust_air_gentle": "Gentle Exhaust Air",
-          "exhaust_air_fast": "Fast Exhaust Air"
+          "off_quantify": "Off",
+          "small_amount": "Small",
+          "normal_amount": "Normal",
+          "large_amount": "Large"
         }
       },
+      "quantify_1": {
+        "name": "Quantify 1",
+        "state": {
+          "50": "50",
+          "100": "100",
+          "150": "150",
+          "200": "200",
+          "250": "250",
+          "300": "300"
+        }
+      },
+      "quantify_2": {
+        "name": "Quantify 2",
+        "state": {
+          "150": "150",
+          "200": "200",
+          "250": "250",
+          "300": "300",
+          "400": "400",
+          "500": "500"
+        }
+      },
+      "quantify_3": {
+        "name": "Quantify 3",
+        "state": {
+          "300": "300",
+          "400": "400",
+          "500": "500",
+          "600": "600",
+          "700": "700"
+        }
+      },
+      "screenout_time": {
+        "name": "Screen Timeout",
+        "state": {
+          "10": "10s",
+          "30": "30s",
+          "60": "60s",
+          "120": "120s",
+          "180": "180s",
+          "300": "300s"
+        }
+      },
+		"fresh_air_mode_select": {
+		    "name": "Mode",
+		    "state": {
+		        "normal": "Normal",
+		        "smart": "Smart",
+		        "manual_recirculation": "Manual Recirculation",
+		        "auto_recirculation": "Auto Recirculation",
+		        "supply_air_gentle": "Gentle Supply Air",
+		        "supply_air_fast": "Fast Supply Air",
+		        "exhaust_air_gentle": "Gentle Exhaust Air",
+		        "exhaust_air_fast": "Fast Exhaust Air"
+		    }
+		},
       "dehydration_speed": {
         "name": "Dehydration Speed"
       },
@@ -1070,6 +1131,9 @@
           "steam_clean": "Steam Clean"
         }
       },
+      "speed": {
+        "name": "Speed"
+      },
       "wash_mode": {
         "name": "wash mode",
         "state": {
@@ -1136,6 +1200,24 @@
       },
       "swing_direction": {
         "name": "Swing Direction"
+      },
+      "lr_shake_switch": {
+        "name": "LR Swing",
+        "state": {
+          "off": "Off",
+          "default": "Default",
+          "normal": "Normal",
+          "diy": "DIY"
+        }
+      },
+      "ud_shake_switch": {
+        "name": "UD Swing",
+        "state": {
+          "off": "Off",
+          "default": "Default",
+          "normal": "Normal",
+          "diy": "DIY"
+        }
       },
       "scene": {
         "name": "Scene"
@@ -1317,6 +1399,15 @@
       }
     },
     "sensor": {
+      "lr_current_angle": {
+        "name": "Current LR Swing Angle"
+      },
+      "ud_current_angle": {
+        "name": "Current UD Swing Angle"
+      },
+      "dry_remain_time": {
+        "name": "Dry Remaining Time"
+      },
       "ice_gall_status": {
         "name": "Ice Gall Status",
         "state": {
@@ -1330,7 +1421,7 @@
       "wind_pressure": {
         "name": "Wind Pressure"
       },
-		  "new_wind_humidity": {
+      "new_wind_humidity": {
         "name": "Fresh air humidity"
       },
       "new_wind_outdoor_temperature": {
@@ -1621,6 +1712,42 @@
       },
       "error_code": {
         "name": "Error Code"
+      },
+      "current_temp": {
+        "name": "Current Temperature"
+      },
+      "current_time": {
+        "name": "Current Duration"
+      },
+      "step_status": {
+        "name": "Step Status"
+      },
+      "cup_status": {
+        "name": "Cup Status"
+      },
+      "lid_status": {
+        "name": "Lid Status"
+      },
+      "response_type": {
+        "name": "Response Type"
+      },
+      "power_on_flag": {
+        "name": "Power On Flag"
+      },
+      "appoint_time": {
+        "name": "Appointment Duration"
+      },
+      "set_work_time": {
+        "name": "Set Work Time"
+      },
+      "set_keep_warm_time": {
+        "name": "Set Keep Warm Time"
+      },
+      "set_work_temp": {
+        "name": "Set Work Temperature"
+      },
+      "set_keep_warm_temp": {
+        "name": "Set Keep Warm Temperature"
       },
       "error_desc": {
         "name": "Error Description"
@@ -2351,6 +2478,12 @@
       "current_temperature": {
         "name": "Current Temperature"
       },
+      "germicidal_left_time": {
+        "name": "Germicidal Time Remaining"
+      },
+      "germicidal_countdown": {
+        "name": "Germicidal Countdown"
+      },
       "bath_temperature": {
         "name": "Bath Temperature"
       },
@@ -2418,6 +2551,12 @@
       }
     },
     "number": {
+      "auto_temperature_lower_limit": {
+        "name": "Auto Temperature Lower Limit"
+      },
+      "auto_temperature_upper_limit": {
+        "name": "Auto Temperature Upper Limit"
+      },
       "air_set_hour": {
         "name": "Drying Storage Set Time"
       },
@@ -2558,11 +2697,57 @@
       },
       "pmv": {
         "name": "PMV"
+      },
+      "custom_temperature_1": {
+        "name": "Custom Temperature 1"
+      },
+      "lr_target_angle": {
+        "name": "LR Swing Angle"
+      },
+      "ud_target_angle": {
+        "name": "UD Swing Angle"
+      },
+      "lr_diy_angle_down": {
+        "name": "LR DIY Start Angle (Left)"
+      },
+      "lr_diy_angle_up": {
+        "name": "LR DIY End Angle (Right)"
+      },
+      "ud_diy_angle_down": {
+        "name": "UD DIY Start Angle (Down)"
+      },
+      "ud_diy_angle_up": {
+        "name": "UD DIY End Angle (Up)"
+      },
+      "area1_time": {
+        "name": "Double Area Area 1 Duration"
+      },
+      "area2_time": {
+        "name": "Double Area Area 2 Duration"
+      },
+      "area1_gear": {
+        "name": "Double Area Area 1 Gear"
+      },
+      "area2_gear": {
+        "name": "Double Area Area 2 Gear"
       }
     },
     "fan": {
       "fan": {
-        "name": "Fan"
+        "name": "Fan",
+        "state_attributes": {
+          "preset_mode": {
+            "state": {
+              "baby": "Baby Wind",
+              "normal": "Normal Wind",
+              "sleep": "Sleep Wind",
+              "self_selection": "Self Selection",
+              "sleeping_wind": "Sleep Wind",
+              "purified_wind": "Purified Wind",
+              "double_area": "Double Area Wind"
+            }
+          }
+        }
       }
     },
     "switch": {
@@ -2583,9 +2768,6 @@
       },
       "buzzer_off_status": {
         "name": "Silent Control"
-      },
-      "ptc": {
-        "name": "PTC"
       },
       "new_wind_machine": {
         "name": "Fresh air switch"
@@ -3385,11 +3567,35 @@
       "drainage": {
         "name": "Drainage"
       },
+      "cool": {
+        "name": "Cooling"
+      },
+      "human_sensing_switch": {
+        "name": "Human Sensing"
+      },
+      "set_germicidal_countdown": {
+        "name": "Set Germicidal Countdown"
+      },
       "wash_enable": {
         "name": "Wash Enable"
       },
       "eco": {
         "name": "Eco Mode"
+      },
+      "ptc": {
+        "name": "Aux Heat"
+      },
+      "digital_display": {
+        "name": "Digital Display"
+      },
+      "voice_control": {
+        "name": "Voice Control"
+      },
+      "voice_control_speaking": {
+        "name": "Voice Broadcasting"
+      },
+      "mute_voice": {
+        "name": "Mute"
       },
       "strong": {
         "name": "Strong Mode"

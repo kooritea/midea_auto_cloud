@@ -125,11 +125,24 @@ DEVICE_MAPPING = {
             }
         }
     },
-    "56011CEN": {
+    "default_fan": { # 56011CBE
         "rationale": ["off", "on"],
         "queries": [{}],
         "centralized": [
-            "power", "gear"
+            "power",
+            "gear",
+            # 摇头控制：保证切换摇头模式或角度时，control 中不会缺少关键字段
+            "lr_shake_switch",
+            "ud_shake_switch",
+            "lr_diy_angle_down",
+            "lr_diy_angle_up",
+            "ud_diy_angle_down",
+            "ud_diy_angle_up",
+            # 双区送风
+            "area1_time",
+            "area2_time",
+            "area1_gear",
+            "area2_gear",
         ],
         "entities": {
             Platform.SWITCH: {
@@ -147,11 +160,12 @@ DEVICE_MAPPING = {
             Platform.FAN: {
                 "fan": {
                     "power": "power",
-                    "speeds": list({"gear": value + 1} for value in range(0, 100)),
+                    "speeds": list({"gear": value + 1} for value in range(0, 12)),
                     "preset_modes": {
+                        "double_area": {"mode": "double_area", "area1_time": 3, "area2_time": 3, "area1_gear": 1, "area2_gear": 1, "lr_shake_switch": "diy"},
                         "self_selection": {"mode": "self_selection"},
                         "sleeping_wind": {"mode": "sleeping_wind"},
-                        "purified_wind": {"mode": "purified_wind"}
+                        "purified_wind": {"mode": "ecology"}
                     }
                 }
             },
@@ -167,14 +181,14 @@ DEVICE_MAPPING = {
                     "options": {
                         "off": {"lr_shake_switch": "off"},
                         "default": {"lr_shake_switch": "default"},
-                        "normal": {"lr_shake_switch": "normal"},
+                        "diy": {"lr_shake_switch": "diy"},
                     }
                 },
                 "ud_shake_switch": {
                     "options": {
                         "off": {"ud_shake_switch": "off"},
                         "default": {"ud_shake_switch": "default"},
-                        "normal": {"ud_shake_switch": "normal"},
+                        "diy": {"ud_shake_switch": "diy"},
                     }
                 },
             },
@@ -196,13 +210,86 @@ DEVICE_MAPPING = {
                 "current_angle": {
                     "device_class": SensorDeviceClass.WIND_DIRECTION,
                     "unit_of_measurement": DEGREE,
-                    "state_class": SensorStateClass.MEASUREMENT
+                    "state_class": SensorStateClass.MEASUREMENT,
+                    "translation_key": "lr_current_angle"
                 },
-                "target_angle": {
+                "ud_current_angle": {
                     "device_class": SensorDeviceClass.WIND_DIRECTION,
                     "unit_of_measurement": DEGREE,
                     "state_class": SensorStateClass.MEASUREMENT
+                },
+                "temperature_feedback": {
+                    "device_class": SensorDeviceClass.TEMPERATURE,
+                    "unit_of_measurement": UnitOfTemperature.CELSIUS,
+                    "state_class": SensorStateClass.MEASUREMENT,
+                    "translation_key": "indoor_temperature"
                 }
+            },
+            Platform.NUMBER: {
+                # normal 模式角度
+                "target_angle": {
+                    "min": 0,
+                    "max": 120,
+                    "step": 1,
+                    "unit_of_measurement": DEGREE,
+                    "default_value": 60,
+                    "translation_key": "lr_target_angle"
+                },
+                "ud_target_angle": {
+                    "min": 0,
+                    "max": 135,
+                    "step": 1,
+                    "unit_of_measurement": DEGREE,
+                    "default_value": 60
+                },
+                # diy 模式起始/结束角度
+                "lr_diy_angle_down": {
+                    "min": 0,
+                    "max": 120,
+                    "step": 1,
+                    "unit_of_measurement": DEGREE
+                },
+                "lr_diy_angle_up": {
+                    "min": 0,
+                    "max": 120,
+                    "step": 1,
+                    "unit_of_measurement": DEGREE
+                },
+                "ud_diy_angle_down": {
+                    "min": 0,
+                    "max": 120,
+                    "step": 1,
+                    "unit_of_measurement": DEGREE
+                },
+                "ud_diy_angle_up": {
+                    "min": 0,
+                    "max": 120,
+                    "step": 1,
+                    "unit_of_measurement": DEGREE
+                },
+                # 双区送风（area1/area2）
+                "area1_time": {
+                    "min": 3,
+                    "max": 10,
+                    "step": 1,
+                    "unit_of_measurement": UnitOfTime.SECONDS
+                },
+                "area2_time": {
+                    "min": 3,
+                    "max": 10,
+                    "step": 1,
+                    "unit_of_measurement": UnitOfTime.SECONDS
+                },
+                "area1_gear": {
+                    "min": 1,
+                    "max": 12,
+                    "step": 1
+                },
+                "area2_gear": {
+                    "min": 1,
+                    "max": 12,
+                    "step": 1
+                },
             }
         }
     },

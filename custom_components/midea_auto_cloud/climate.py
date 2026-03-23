@@ -7,14 +7,15 @@ from homeassistant.components.climate import (
 from homeassistant.const import (
     Platform,
     ATTR_TEMPERATURE,
+    UnitOfTemperature,
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN
+from .core.logger import MideaLogger
 from .midea_entity import MideaEntity
-from . import load_device_config
+from .platform_setup import async_setup_platform_entities
 
 
 async def async_setup_entry(
@@ -23,31 +24,15 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up climate entities for Midea devices."""
-    # 账号型 entry：从 __init__ 写入的 accounts 桶加载设备和协调器
-    account_bucket = hass.data.get(DOMAIN, {}).get("accounts", {}).get(config_entry.entry_id)
-    if not account_bucket:
-        async_add_entities([])
-        return
-    device_list = account_bucket.get("device_list", {})
-    coordinator_map = account_bucket.get("coordinator_map", {})
-
-    devs = []
-    for device_id, info in device_list.items():
-        device_type = info.get("type")
-        sn8 = info.get("sn8")
-        coordinator = coordinator_map.get(device_id)
-        device = coordinator.device if coordinator else None
-        subtype = device.subtype if device else None
-        config = await load_device_config(hass, device_type, sn8, subtype) or {}
-        entities_cfg = (config.get("entities") or {}).get(Platform.CLIMATE, {})
-        manufacturer = config.get("manufacturer")
-        rationale = config.get("rationale")
-
-        for entity_key, ecfg in entities_cfg.items():
-            devs.append(MideaClimateEntity(
-                coordinator, device, manufacturer, rationale, entity_key, ecfg
-            ))
-    async_add_entities(devs)
+    await async_setup_platform_entities(
+        hass,
+        config_entry,
+        async_add_entities,
+        Platform.CLIMATE,
+        lambda coordinator, device, manufacturer, rationale, entity_key, ecfg: MideaClimateEntity(
+            coordinator, device, manufacturer, rationale, entity_key, ecfg
+        ),
+    )
 
 
 class MideaClimateEntity(MideaEntity, ClimateEntity):
@@ -84,9 +69,31 @@ class MideaClimateEntity(MideaEntity, ClimateEntity):
         self._key_max_humidity = self._config.get("max_humidity")
         self._key_current_humidity = self._config.get("current_humidity")
         self._key_target_humidity = self._config.get("target_humidity")
-        self._attr_temperature_unit = self._config.get("temperature_unit")
+        self._key_temperature_unit = self._config.get("temperature_unit")
+        self._attr_temperature_unit = (
+            self._key_temperature_unit
+            if not isinstance(self._key_temperature_unit, str)
+            else UnitOfTemperature.CELSIUS
+        )
         self._attr_precision = self._config.get("precision")
         self._attr_target_temperature_step = self._config.get("precision")
+
+    @property
+    def temperature_unit(self):
+        """Return the temperature unit (static or device attribute driven).
+
+        If mapping provides a string key (e.g. "temperature_unit"), it is read from device attributes:
+        - 1 => Fahrenheit
+        - 0/others => Celsius
+        """
+        if isinstance(self._key_temperature_unit, str):
+            raw = self._get_nested_value(self._key_temperature_unit)
+            try:
+                value = int(raw)
+            except (TypeError, ValueError):
+                value = 0
+            return UnitOfTemperature.FAHRENHEIT if value == 1 else UnitOfTemperature.CELSIUS
+        return self._attr_temperature_unit
 
     @property
     def supported_features(self):
@@ -180,28 +187,32 @@ class MideaClimateEntity(MideaEntity, ClimateEntity):
     @property
     def min_temp(self):
         if isinstance(self._key_min_temp, str):
-            return float(self.device_attributes.get(self._key_min_temp, 16))
+            min_temp = self.device_attributes.get(self._key_min_temp, 16)
+            return float(min_temp) if min_temp is not None else 16.0
         else:
             return float(self._key_min_temp)
 
     @property
     def max_temp(self):
         if isinstance(self._key_max_temp, str):
-            return float(self.device_attributes.get(self._key_max_temp, 30))
+            max_temp = self.device_attributes.get(self._key_max_temp, 30)
+            return float(max_temp) if max_temp is not None else 30.0
         else:
             return float(self._key_max_temp)
 
     @property
     def min_humidity(self):
         if isinstance(self._key_min_humidity, str):
-            return float(self.device_attributes.get(self._key_min_humidity, 45))
+            min_humidity = self.device_attributes.get(self._key_min_humidity, 45)
+            return float(min_humidity) if min_humidity is not None else 45.0
         else:
             return float(self._key_min_humidity)
 
     @property
     def max_humidity(self):
         if isinstance(self._key_max_humidity, str):
-            return float(self.device_attributes.get(self._key_max_humidity, 65))
+            max_humidity = self.device_attributes.get(self._key_max_humidity, 65)
+            return float(max_humidity) if max_humidity is not None else 65.0
         else:
             return float(self._key_max_humidity)
 
