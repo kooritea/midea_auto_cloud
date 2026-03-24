@@ -45,7 +45,7 @@ from .const import (
     CONF_SN,
     CONF_MODEL_NUMBER,
     CONF_SERVERS, STORAGE_PATH, CONF_MANUFACTURER_CODE,
-    CONF_SELECTED_HOMES, CONF_SMART_PRODUCT_ID, STORAGE_PLUGIN_PATH, STORAGE_TOKEN_PATH,
+    CONF_SELECTED_HOMES, CONF_SMART_PRODUCT_ID, STORAGE_PLUGIN_PATH,
     CONF_PASSWORD, CONF_SERVER,
     CONF_CATEGORY,
 )
@@ -272,9 +272,6 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         if session_key not in hass.data[DOMAIN]["cloud_login_locks"]:
             hass.data[DOMAIN]["cloud_login_locks"][session_key] = asyncio.Lock()
 
-        # 确保 token 存储目录存在
-        token_storage = hass.config.path(STORAGE_TOKEN_PATH)
-
         async with hass.data[DOMAIN]["cloud_login_locks"][session_key]:
             cloud = hass.data[DOMAIN]["cloud_sessions"].get(session_key)
 
@@ -284,7 +281,6 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
                     session=async_get_clientsession(hass),
                     account=account,
                     password=password,
-                    token_storage=token_storage,
                 )
                 if not cloud or not await cloud.login():
                     MideaLogger.error("Midea cloud login failed")
