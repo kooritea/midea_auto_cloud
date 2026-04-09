@@ -296,6 +296,8 @@ DEVICE_MAPPING = {
         }
     },
     "default_front_load_washer": {
+        "queries": [{}],
+        "centralized": [],
         "rationale": ["off", "on"],
         "entities": {
             Platform.BINARY_SENSOR: {
@@ -322,7 +324,11 @@ DEVICE_MAPPING = {
                 },
                 "nightly": {
                     "device_class": SwitchDeviceClass.SWITCH,
-                }
+                },
+                "wind_dispel": {
+                    "device_class": SwitchDeviceClass.SWITCH,
+                    "rationale": ["0", "1"],
+                },
             },
             Platform.SELECT: {
                 "mode": {
